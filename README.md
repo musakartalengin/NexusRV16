@@ -13,38 +13,71 @@ Bu proje, modern bilgisayar mimarisi prensiplerini (Register Forwarding, Hazard 
 Aşağıdaki diyagram, NexusRV16'nın iç veri yollarını, kontrol mantığını ve bellek etkileşimini göstermektedir.
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#f4f4f4', 'fontFamily': 'arial', 'fontSize': '16px'}}}%%
 graph LR
-    %% Stil Tanımları - Temiz ve Modern
-    classDef cpu fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#1565c0;
-    classDef memory fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100;
-    classDef module fill:#ffffff,stroke:#455a64,stroke-width:1px,color:#37474f;
-    classDef test fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#4a148c;
+    %% 🎨 RENK PALETİ VE STİLLER (Vibrant & Professional)
+    classDef cpuContainer fill:#e3f2fd,stroke:#1565c0,stroke-width:3px,color:#0d47a1,rx:10,ry:10;
+    classDef memory fill:#fff8e1,stroke:#ff8f00,stroke-width:3px,color:#bf360c,rx:5,ry:5;
+    classDef control fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#b71c1c,rx:5,ry:5;
+    classDef alu fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#004d40,rx:5,ry:5;
+    classDef regs fill:#f1f8e9,stroke:#558b2f,stroke-width:2px,color:#33691e,rx:5,ry:5;
+    classDef datapath fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#4a148c,rx:5,ry:5;
+    classDef testbench fill:#37474f,stroke:#263238,stroke-width:2px,color:#ffffff,rx:10,ry:10;
 
-    subgraph SYSTEM ["💻 NexusRV16 Computer System"]
+    %% ---------------------------------------------------------
+    %% ANA SİSTEM
+    %% ---------------------------------------------------------
+    
+    %% TESTBENCH (SOLDA)
+    TB("�️ TESTBENCH<br/>(tb_NexusRV16)"):::testbench
+
+    subgraph SYSTEM_BOARD [ ]
         direction LR
-
-        subgraph CPU_WRAPPER ["Processsor (NexusRV16)"]
+        
+        %% CPU İÇ YAPISI
+        subgraph CPU [⚡ NexusRV16 PROCESSOR]
             direction TB
             
-            CTRL["Control Unit<br>(nexus_control)"]:::module
-            ALU["ALU<br>(nexus_alu)"]:::module
-            REGS["Register File<br>(nexus_regfile)"]:::module
-            DP["Datapath Logic<br>(nexus_datapath)"]:::module
+            %% Üst Katman: Kontrol ve Hesaplama
+            subgraph EXEC_LEVEL [ ]
+                direction LR
+                CTRL["🎮 CONTROL UNIT<br/>(nexus_control)"]:::control
+                ALU["🧮 ALU<br/>(nexus_alu)"]:::alu
+            end
+            
+            %% Alt Katman: Depolama ve Veri Yolu
+            subgraph DATA_LEVEL [ ]
+                direction LR
+                REGS["®️ REGISTER FILE<br/>(nexus_regfile)"]:::regs
+                DP["twisted_rightwards_arrows: DATAPATH<br/>(nexus_datapath)"]:::datapath
+            end
 
-            CTRL --> DP
-            REGS <--> DP
-            ALU <--> DP
+            %% CPU İçi Bağlantılar
+            CTRL ==>|"Control Signals"| DP
+            REGS <==>|"Operands & Results"| DP
+            ALU <==>|"Calculation"| DP
+            
+            %% Hiyerarşik Hizalama için görünmez bağ
+            EXEC_LEVEL ~~~ DATA_LEVEL
         end
-        class CPU_WRAPPER cpu
+        class CPU cpuContainer
 
-        RAM[("Main Memory<br>(nexus_ram)")]:::memory
+        %% BELLEK (SAĞDA)
+        RAM[("💾 MAIN MEMORY<br/>(nexus_ram)<br/>64KB")]:::memory
         
-        CPU_WRAPPER <==>|"Data & Instr"| RAM
+        %% Sistem Bağlantıları
+        CPU <==>|"addr / data / we"| RAM
     end
+    
+    %% Testbench Bağlantısı
+    TB =="Clock, Reset, Code"==> CPU
 
-    TB("Testbench<br>(tb_NexusRV16)"):::test
-    TB -.->|"Clock, Reset,<br>Program Load"| SYSTEM
-
+    %% ---------------------------------------------------------
+    %% Stil Atamaları (Kenarlıklar görünmez olsun diye subgraph trick)
+    %% ---------------------------------------------------------
+    style SYSTEM_BOARD fill:none,stroke:none;
+    style EXEC_LEVEL fill:none,stroke:none;
+    style DATA_LEVEL fill:none,stroke:none;
 ```
 
 ---
