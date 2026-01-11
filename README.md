@@ -13,7 +13,7 @@ Bu proje, modern bilgisayar mimarisi prensiplerini (Register Forwarding, Hazard 
 Aşağıdaki diyagram, NexusRV16'nın iç veri yollarını, kontrol mantığını ve bellek etkileşimini göstermektedir.
 
 ```mermaid
-graph LR
+graph TB
     %% =========================================================
     %% TEMA VE STİL AYARLARI 
     %% =========================================================
@@ -21,7 +21,7 @@ graph LR
 
     %% BEYAZ TUVAL KAPSAYICISI
     subgraph CANVAS [ <br/> ]
-        direction LR
+        direction TB
 
         %% 🎨 RENK PALETİ
         classDef canvas fill:#ffffff,stroke:#333333,stroke-width:2px;
@@ -29,67 +29,59 @@ graph LR
         classDef memory fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:#000000;
         classDef external fill:#f5f5f5,stroke:#757575,stroke-width:2px,color:#000000;
         
-        %% Label Stili: Arka planı beyaz yapma hack'i
-        classDef labelStyle color:#333,fill:#fff,stroke:#ccc;
-
         %% =====================================================
-        %% 1. SOL: TEST ORTAMI
+        %% 1. EN ÜST KATMAN: GİRİŞ
         %% =====================================================
         TB["🛠️ TESTBENCH"]:::external
 
         %% =====================================================
-        %% 2. ORTA: PROCESOR ÇEKİRDEĞİ
+        %% 2. ORTA KATMAN: CPU CORE
         %% =====================================================
         subgraph CPU_FRAME [⚡ NexusRV16 CPU CORE]
             direction TB
             
             CTRL["🎮 Control Unit"]:::block
             
-            subgraph DP_LAYER [ ]
+            subgraph DATA_PATH [ ]
                 direction LR
-                REGS["®️ Register File"]:::block
                 ALU["🧮 ALU"]:::block
+                REGS["®️ Register File"]:::block
             end
             
-            %% Hiyerarşi
-            CTRL
-            DP_LAYER
+            %% Hiyerarşik Bağlar
+            CTRL --> DATA_PATH
         end
 
         %% =====================================================
-        %% 3. SAĞ: BELLEK (Register File ile aynı hizada)
+        %% 3. ALT KATMAN: BELLEK
         %% =====================================================
         RAM[("💾 MAIN MEMORY<br/>(64KB)")]:::memory
 
         %% =====================================================
-        %% BAĞLANTILAR
+        %% BAĞLANTILAR (Yukarıdan Aşağıya Akış)
         %% =====================================================
         
         %% Testbench -> Control
-        TB == "Instruction" ==> CTRL
+        TB == "Instruction Code" ==> CTRL
 
-        %% Control -> Diğerleri
-        CTRL -- "Signals" --> REGS
-        CTRL -- "Opcode" --> ALU
-        
-        %% Veri Yolu (Register <-> ALU)
+        %% Control -> Data Path
+        CTRL -- "Control Sigs" --> REGS
+        CTRL -- "ALU Opcode" --> ALU
+
+        %% ALU <-> Regs Döngüsü
         REGS -- "Operands" --> ALU
         ALU -- "Result" --> REGS
 
-        %% RAM Etkileşimi (Register <-> RAM)
-        %% Okların birbirini ezmemesi için farklı yönler
-        REGS ==>|Store| RAM
-        RAM ==>|Load| REGS
-
-        %% Hizalama: RAM'i DP_LAYER ile aynı seviyeye çek
-        DP_LAYER ~~~ RAM
+        %% CPU <-> RAM (Daha temiz hatlar)
+        REGS <== "Store Data" ==> RAM
+        RAM <== "Load Data" ==> REGS
 
     end
     
     %% STİL
     style CANVAS fill:#ffffff,stroke:#9e9e9e,stroke-width:4px
     style CPU_FRAME fill:#ffffff,stroke:#1565c0,stroke-width:3px,color:#000000
-    style DP_LAYER fill:none,stroke:none
+    style DATA_PATH fill:none,stroke:none
 
 ```
 
