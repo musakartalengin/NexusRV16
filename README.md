@@ -13,12 +13,12 @@ Bu proje, modern bilgisayar mimarisi prensiplerini (Register Forwarding, Hazard 
 Aşağıdaki diyagram, NexusRV16'nın iç veri yollarını, kontrol mantığını ve bellek etkileşimini göstermektedir.
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'edgeLabelBackground': '#ffffff', 'tertiaryColor': '#ffffff', 'primaryColor': '#ffffff'}}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#ffffff', 'edgeLabelBackground': '#ffffff', 'tertiaryColor': '#ffffff'}}}%%
 graph LR
     %% =========================================================
-    %% TEMA: YATAY DÜZEN (Temiz Beyaz Arka Plan)
+    %% TEMA: KLASİK DEVRE ŞEMASI (Köşeli Hatlar)
     %% =========================================================
-    linkStyle default interpolate basis stroke:#333333,stroke-width:2px;
+    linkStyle default interpolate step stroke:#333333,stroke-width:2px;
 
     %% BEYAZ TUVAL KAPSAYICISI
     subgraph CANVAS [ <br/> ]
@@ -26,66 +26,42 @@ graph LR
 
         %% 🎨 RENK PALETİ
         classDef canvas fill:#ffffff,stroke:#333333,stroke-width:2px;
-        classDef block fill:#f0f8ff,stroke:#1e88e5,stroke-width:2px,color:#000000,rx:5,ry:5;
+        classDef block fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000000,rx:0,ry:0;
         classDef memory fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:#000000,rx:0,ry:0;
-        classDef external fill:#f5f5f5,stroke:#757575,stroke-width:2px,color:#000000,rx:5,ry:5;
+        classDef external fill:#f5f5f5,stroke:#757575,stroke-width:2px,color:#000000,rx:0,ry:0;
 
         %% =====================================================
-        %% 1. SOL: TEST ORTAMI
+        %% BİLEŞENLER
         %% =====================================================
         TB["🛠️ TESTBENCH"]:::external
+        CTRL["🎮 CONTROL UNIT"]:::block
+        REGS["®️ REGISTER FILE"]:::block
+        ALU["🧮 ALU"]:::block
+        RAM[("💾 MEMORY (64KB)")]:::memory
 
         %% =====================================================
-        %% 2. ORTA: PROCESOR ÇEKİRDEĞİ
-        %% =====================================================
-        subgraph CPU_FRAME [⚡ NexusRV16 CPU CORE]
-            direction TB
-            
-            CTRL["🎮 Control Unit"]:::block
-            
-            %% Datapath'i yatayda hizala
-            subgraph DP_LAYER [ ]
-                direction LR
-                REGS["®️ Register File"]:::block
-                ALU["🧮 ALU"]:::block
-            end
-            
-            %% Hiyerarşi: Kontrol üstte, Datapath altta
-            CTRL --> DP_LAYER
-        end
-
-        %% =====================================================
-        %% 3. SAĞ: BELLEK (Yan hizada)
-        %% =====================================================
-        RAM[("💾 MAIN MEMORY<br/>(64KB)")]:::memory
-
-        %% =====================================================
-        %% BAĞLANTILAR
+        %% BAĞLANTILAR (Kesişmesiz Sıralı Akış)
         %% =====================================================
         
-        %% Testbench -> Control
-        TB == "Instruction" ==> CTRL
+        %% 1. Testbench -> Control
+        TB ==> CTRL
 
-        %% Control Sinyalleri (Temiz Dağılım)
-        CTRL -- "Control Sigs" --> REGS
-        CTRL -- "Opcode" --> ALU
-        
-        %% ALU işlem döngüsü
-        REGS -- "Operands" --> ALU
-        ALU -- "Result" --> REGS
+        %% 2. Control -> Register & ALU
+        CTRL ==> REGS
+        CTRL -- Opcode --> ALU
 
-        %% RAM Bağlantısı (Kesişmeyi Önleyen Rota)
-        REGS ==>|Store| RAM
-        RAM ==>|Load| REGS
+        %% 3. Register <-> ALU
+        REGS ==> ALU
+        ALU -- Result --> REGS
 
-        %% Hizalama: RAM'i DP_LAYER ile hizala
-        DP_LAYER ~~~ RAM
+        %% 4. Register <-> RAM (Memory Access)
+        REGS ==> RAM
+        RAM ==> REGS
+
     end
     
     %% STİL
     style CANVAS fill:#ffffff,stroke:#9e9e9e,stroke-width:4px
-    style CPU_FRAME fill:#ffffff,stroke:#1565c0,stroke-width:3px,color:#000000
-    style DP_LAYER fill:none,stroke:none
 
 ```
 
