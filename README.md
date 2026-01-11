@@ -13,61 +13,38 @@ Bu proje, modern bilgisayar mimarisi prensiplerini (Register Forwarding, Hazard 
 Aşağıdaki diyagram, NexusRV16'nın iç veri yollarını, kontrol mantığını ve bellek etkileşimini göstermektedir.
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2C3E50', 'edgeLabelBackground':'#ecf0f1', 'tertiaryColor': '#ecf0f1'}}}%%
 graph LR
-    %% Stil Tanımları
-    classDef memory fill:#f1c40f,stroke:#f39c12,stroke-width:2px,color:black;
-    classDef control fill:#e74c3c,stroke:#c0392b,stroke-width:2px,color:white;
-    classDef datapath fill:#3498db,stroke:#2980b9,stroke-width:2px,color:white;
-    classDef regfile fill:#2ecc71,stroke:#27ae60,stroke-width:2px,color:white;
-    classDef writeback fill:#9b59b6,stroke:#8e44ad,stroke-width:2px,color:white;
+    %% Stil Tanımları - Temiz ve Modern
+    classDef cpu fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#1565c0;
+    classDef memory fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100;
+    classDef module fill:#ffffff,stroke:#455a64,stroke-width:1px,color:#37474f;
+    classDef test fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#4a148c;
 
-    subgraph MEMORY_SYSTEM [Memory System]
-        RAM[("RAM (64KB)<br>Instr & Data")]:::memory
-    end
+    subgraph SYSTEM ["💻 NexusRV16 Computer System"]
+        direction LR
 
-    subgraph CPU_CORE [NexusRV16 Core]
-        
-        subgraph FETCH_DECODE [Stage 1: Fetch & Decode]
-            PC[Program Counter]:::datapath
-            IR[Instruction Register]:::datapath
-            CTRL(Control Unit):::control
+        subgraph CPU_WRAPPER ["Processsor (NexusRV16)"]
+            direction TB
+            
+            CTRL["Control Unit<br>(nexus_control)"]:::module
+            ALU["ALU<br>(nexus_alu)"]:::module
+            REGS["Register File<br>(nexus_regfile)"]:::module
+            DP["Datapath Logic<br>(nexus_datapath)"]:::module
+
+            CTRL --> DP
+            REGS <--> DP
+            ALU <--> DP
         end
+        class CPU_WRAPPER cpu
 
-        subgraph REGISTER_FILE [Registers]
-            REGS[["Register File<br>(R0 - R7)"]]:::regfile
-        end
-
-    subgraph EXECUTE_WB [Stage 2: Execute & Writeback]
-            ALU["ALU<br>Arith & Logic"]:::datapath
-            FLAGS["Flag Reg<br>(N, Z, C, V)"]:::datapath
-            FORWARD{"Forwarding<br>Unit"}:::writeback
+        RAM[("Main Memory<br>(nexus_ram)")]:::memory
+        
+        CPU_WRAPPER <==>|"Data & Instr"| RAM
     end
 
-        %% Data Flow
-        PC ==>|Address| RAM
-        RAM ==>|Instruction/Data| IR
-        IR -->|Opcode| CTRL
-        IR -->|Rs1/Rs2 Addr| REGS
-        REGS ==>|OpA| ALU
-        REGS ==>|OpB| ALU
-        
-        %% Forwarding & WB
-        ALU ==>|Result| FORWARD
-        RAM -.->|Load Data| FORWARD
-        FORWARD ==>|Write Data| REGS
-        
-        %% Control Flow
-        CTRL -.->|Stall/Flush| PC
-        CTRL -.->|RegWrite| REGS
-        CTRL -.->|ALU Op| ALU
-        CTRL -.->|MemRead/Write| RAM
-        
-        %% Branching
-        FLAGS -.->|Condition| CTRL
-        ALU -.->|Branch Target| PC
+    TB("Testbench<br>(tb_NexusRV16)"):::test
+    TB -.->|"Clock, Reset,<br>Program Load"| SYSTEM
 
-    end
 ```
 
 ---
