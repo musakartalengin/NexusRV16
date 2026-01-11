@@ -15,53 +15,47 @@ Aşağıdaki diyagram, NexusRV16'nın iç veri yollarını, kontrol mantığın�
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#ffffff', 'edgeLabelBackground': '#ffffff', 'tertiaryColor': '#ffffff'}}}%%
 graph LR
-    %% =========================================================
-    %% TEMA: KLASİK DEVRE ŞEMASI (Köşeli Hatlar)
-    %% =========================================================
     linkStyle default interpolate step stroke:#333333,stroke-width:2px;
 
-    %% BEYAZ TUVAL KAPSAYICISI
     subgraph CANVAS [ <br/> ]
         direction LR
 
-        %% 🎨 RENK PALETİ
         classDef canvas fill:#ffffff,stroke:#333333,stroke-width:2px;
         classDef block fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000000,rx:0,ry:0;
         classDef memory fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:#000000,rx:0,ry:0;
         classDef external fill:#f5f5f5,stroke:#757575,stroke-width:2px,color:#000000,rx:0,ry:0;
 
-        %% =====================================================
-        %% BİLEŞENLER
-        %% =====================================================
+        %% 1. SOL: TEST & CONTROL
         TB["🛠️ TESTBENCH"]:::external
         CTRL["🎮 CONTROL UNIT"]:::block
-        REGS["®️ REGISTER FILE"]:::block
-        ALU["🧮 ALU"]:::block
+
+        %% 2. ORTA: DATAPATH (Dikey Hizalı)
+        subgraph DP [ ]
+            direction TB
+            ALU["🧮 ALU"]:::block
+            REGS["®️ REGISTER FILE"]:::block
+        end
+
+        %% 3. SAĞ: MEMORY
         RAM[("💾 MEMORY (64KB)")]:::memory
 
-        %% =====================================================
-        %% BAĞLANTILAR (Kesişmesiz Sıralı Akış)
-        %% =====================================================
-        
-        %% 1. Testbench -> Control
+        %% BAĞLANTILAR
         TB ==> CTRL
+        CTRL ==>|Signals| REGS
+        CTRL ==>|Opcode| ALU
 
-        %% 2. Control -> Register & ALU
-        CTRL ==> REGS
-        CTRL -- Opcode --> ALU
+        %% ALU <-> REGS (Dikey Döngü)
+        REGS ==>|Operands| ALU
+        ALU ==>|Result| REGS
 
-        %% 3. Register <-> ALU
-        REGS ==> ALU
-        ALU -- Result --> REGS
-
-        %% 4. Register <-> RAM (Memory Access)
-        REGS ==> RAM
-        RAM ==> REGS
+        %% REGS <-> RAM
+        REGS ==>|Store| RAM
+        RAM ==>|Load| REGS
 
     end
     
-    %% STİL
     style CANVAS fill:#ffffff,stroke:#9e9e9e,stroke-width:4px
+    style DP fill:none,stroke:none
 
 ```
 
