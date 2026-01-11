@@ -38,11 +38,11 @@ graph LR
             REGS[["Register File<br>(R0 - R7)"]]:::regfile
         end
 
-        subgraph EXECUTE_WB [Stage 2: Execute & Writeback]
-            ALU(/ ALU \)<br>Arith & Logic:::datapath
-            FLAGS[Flag Reg<br>(N, Z, C, V)]:::datapath
-            FORWARD{Forwarding<br>Unit}:::writeback
-        end
+    subgraph EXECUTE_WB [Stage 2: Execute & Writeback]
+            ALU["ALU<br>Arith & Logic"]:::datapath
+            FLAGS["Flag Reg<br>(N, Z, C, V)"]:::datapath
+            FORWARD{"Forwarding<br>Unit"}:::writeback
+    end
 
         %% Data Flow
         PC ==>|Address| RAM
