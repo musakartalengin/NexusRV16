@@ -15,9 +15,8 @@ Aşağıdaki diyagram, NexusRV16'nın iç veri yollarını, kontrol mantığın�
 ```mermaid
 graph LR
     %% =========================================================
-    %% TEMA VE STİL AYARLARI (Polishing)
+    %% TEMA VE STİL AYARLARI 
     %% =========================================================
-    %% Kenarların yumuşak dönüşlü olması için 'basis' kullanıyoruz
     linkStyle default interpolate basis stroke:#333333,stroke-width:2px;
 
     %% BEYAZ TUVAL KAPSAYICISI
@@ -26,62 +25,71 @@ graph LR
 
         %% 🎨 RENK PALETİ
         classDef canvas fill:#ffffff,stroke:#333333,stroke-width:2px;
-        classDef block fill:#f0f8ff,stroke:#1e88e5,stroke-width:2px,color:#0d47a1,rx:5,ry:5;
-        classDef memory fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:#f57f17,rx:0,ry:0;
-        classDef external fill:#f5f5f5,stroke:#757575,stroke-width:2px,color:#212121,rx:5,ry:5;
+        classDef block fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000000;
+        classDef memory fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:#000000;
+        classDef external fill:#f5f5f5,stroke:#757575,stroke-width:2px,color:#000000;
         
-        %% Şeffaf etiket arka planı için stil (Mermaid CSS trick)
-        %% Bu özellik her renderda çalışmayabilir ama denemeye değer.
-        
+        %% Label Stili: Arka planı beyaz yapma hack'i
+        classDef labelStyle color:#333,fill:#fff,stroke:#ccc;
+
         %% =====================================================
         %% 1. SOL: TEST ORTAMI
         %% =====================================================
-        TB["🛠️ TESTBENCH / GİRİŞ"]:::external
+        TB["🛠️ TESTBENCH"]:::external
 
         %% =====================================================
-        %% 2. ORTA: PROCESOR ÇEKİRDEĞİ (Dikey Hizalı)
+        %% 2. ORTA: PROCESOR ÇEKİRDEĞİ
         %% =====================================================
         subgraph CPU_FRAME [⚡ NexusRV16 CPU CORE]
             direction TB
             
-            %% Bileşenleri dikeyde hizalamak için görünmez bağlar kullanacağız
             CTRL["🎮 Control Unit"]:::block
-            REGS["®️ Register File"]:::block
-            ALU["🧮 Arith Logic Unit"]:::block
             
-            %% Dikey Hiyerarşi
-            CTRL ~~~ REGS ~~~ ALU
+            subgraph DP_LAYER [ ]
+                direction LR
+                REGS["®️ Register File"]:::block
+                ALU["🧮 ALU"]:::block
+            end
+            
+            %% Hiyerarşi
+            CTRL
+            DP_LAYER
         end
 
         %% =====================================================
-        %% 3. SAĞ: BELLEK (Dikeyde ortalanmış)
+        %% 3. SAĞ: BELLEK (Register File ile aynı hizada)
         %% =====================================================
-        RAM[("💾 MAIN MEMORY<br/>64KB RAM")]:::memory
+        RAM[("💾 MAIN MEMORY<br/>(64KB)")]:::memory
 
         %% =====================================================
-        %% BAĞLANTILAR (Kavisli ve Düzenli)
+        %% BAĞLANTILAR
         %% =====================================================
         
         %% Testbench -> Control
-        TB == "Instruction Code" ==> CTRL
+        TB == "Instruction" ==> CTRL
 
         %% Control -> Diğerleri
         CTRL -- "Signals" --> REGS
         CTRL -- "Opcode" --> ALU
         
-        %% Veri Yolu Döngüsü
-        REGS -- "Operands A/B" --> ALU
-        ALU -- "Result Data" --> REGS
+        %% Veri Yolu (Register <-> ALU)
+        REGS -- "Operands" --> ALU
+        ALU -- "Result" --> REGS
 
-        %% RAM Etkileşimi (Register File üzerinden)
-        REGS <== "Store Data" ==> RAM
-        RAM <== "Load Data" ==> REGS
+        %% RAM Etkileşimi (Register <-> RAM)
+        %% Okların birbirini ezmemesi için farklı yönler
+        REGS ==>|Store| RAM
+        RAM ==>|Load| REGS
+
+        %% Hizalama: RAM'i DP_LAYER ile aynı seviyeye çek
+        DP_LAYER ~~~ RAM
 
     end
     
-    %% TUVAL VE ÇERÇEVE STİLLERİ
+    %% STİL
     style CANVAS fill:#ffffff,stroke:#9e9e9e,stroke-width:4px
     style CPU_FRAME fill:#ffffff,stroke:#1565c0,stroke-width:3px,color:#000000
+    style DP_LAYER fill:none,stroke:none
 
 ```
 
