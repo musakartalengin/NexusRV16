@@ -15,65 +15,73 @@ Aşağıdaki diyagram, NexusRV16'nın iç veri yollarını, kontrol mantığın�
 ```mermaid
 graph LR
     %% =========================================================
-    %% BEYAZ TUVAL AYARI (Arka plan sorununu çözer)
+    %% TEMA VE STİL AYARLARI (Polishing)
     %% =========================================================
-    subgraph CANVAS [ ]
+    %% Kenarların yumuşak dönüşlü olması için 'basis' kullanıyoruz
+    linkStyle default interpolate basis stroke:#333333,stroke-width:2px;
+
+    %% BEYAZ TUVAL KAPSAYICISI
+    subgraph CANVAS [ <br/> ]
         direction LR
 
-        %% 🎨 RENK PALETİ (Profesyonel Mavi/Gri Tonlar)
-        classDef canvas fill:#ffffff,stroke:#333333,stroke-width:2px,color:#000000;
-        classDef block fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000000,rx:5,ry:5;
-        classDef memory fill:#fff8e1,stroke:#ff8f00,stroke-width:2px,color:#000000,rx:0,ry:0;
-        classDef external fill:#f5f5f5,stroke:#616161,stroke-width:2px,color:#000000,rx:5,ry:5;
+        %% 🎨 RENK PALETİ
+        classDef canvas fill:#ffffff,stroke:#333333,stroke-width:2px;
+        classDef block fill:#f0f8ff,stroke:#1e88e5,stroke-width:2px,color:#0d47a1,rx:5,ry:5;
+        classDef memory fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:#f57f17,rx:0,ry:0;
+        classDef external fill:#f5f5f5,stroke:#757575,stroke-width:2px,color:#212121,rx:5,ry:5;
+        
+        %% Şeffaf etiket arka planı için stil (Mermaid CSS trick)
+        %% Bu özellik her renderda çalışmayabilir ama denemeye değer.
         
         %% =====================================================
-        %% BİLEŞENLER
+        %% 1. SOL: TEST ORTAMI
         %% =====================================================
-        
-        %% 1. GİRİŞ BİRİMİ
-        TB["🛠️ Testbench / Girdi"]:::external
+        TB["🛠️ TESTBENCH / GİRİŞ"]:::external
 
-        %% 2. CPU KUTUSU
+        %% =====================================================
+        %% 2. ORTA: PROCESOR ÇEKİRDEĞİ (Dikey Hizalı)
+        %% =====================================================
         subgraph CPU_FRAME [⚡ NexusRV16 CPU CORE]
             direction TB
             
+            %% Bileşenleri dikeyde hizalamak için görünmez bağlar kullanacağız
             CTRL["🎮 Control Unit"]:::block
             REGS["®️ Register File"]:::block
-            ALU["🧮 ALU"]:::block
+            ALU["🧮 Arith Logic Unit"]:::block
             
-            %% Hiyerarşik Düzen (Yukarıdan Aşağıya)
-            CTRL
-            REGS
-            ALU
+            %% Dikey Hiyerarşi
+            CTRL ~~~ REGS ~~~ ALU
         end
 
-        %% 3. BELLEK BİRİMİ
-        RAM[("💾 Main Memory<br>(64KB)")]:::memory
+        %% =====================================================
+        %% 3. SAĞ: BELLEK (Dikeyde ortalanmış)
+        %% =====================================================
+        RAM[("💾 MAIN MEMORY<br/>64KB RAM")]:::memory
 
         %% =====================================================
-        %% BAĞLANTILAR (Hizalamayı bozmadan)
+        %% BAĞLANTILAR (Kavisli ve Düzenli)
         %% =====================================================
         
-        %% Testbench -> CPU (Program Code)
-        TB == "Program Code" ==> CTRL
+        %% Testbench -> Control
+        TB == "Instruction Code" ==> CTRL
 
-        %% CPU İçi Sinyal Akışı (Temiz Hatlar)
-        CTRL -- "Control Signals" --> REGS
-        CTRL -- "Opcode Select" --> ALU
+        %% Control -> Diğerleri
+        CTRL -- "Signals" --> REGS
+        CTRL -- "Opcode" --> ALU
         
-        %% Veri Akışı (Data Path)
-        REGS -- "Operands" --> ALU
-        ALU -- "Result (Writeback)" --> REGS
+        %% Veri Yolu Döngüsü
+        REGS -- "Operands A/B" --> ALU
+        ALU -- "Result Data" --> REGS
 
-        %% CPU <-> RAM Etkileşimi
-        REGS <== "Data Write" ==> RAM
-        RAM <== "Data Read" ==> REGS
+        %% RAM Etkileşimi (Register File üzerinden)
+        REGS <== "Store Data" ==> RAM
+        RAM <== "Load Data" ==> REGS
 
     end
     
-    %% TUVAL STİLİ (Beyaz Arka Plan Uygulaması)
+    %% TUVAL VE ÇERÇEVE STİLLERİ
     style CANVAS fill:#ffffff,stroke:#9e9e9e,stroke-width:4px
-    style CPU_FRAME fill:#fdfdfd,stroke:#2196f3,stroke-width:2px,color:#000000
+    style CPU_FRAME fill:#ffffff,stroke:#1565c0,stroke-width:3px,color:#000000
 
 ```
 
