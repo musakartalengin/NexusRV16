@@ -13,75 +13,79 @@ Bu proje, modern bilgisayar mimarisi prensiplerini (Register Forwarding, Hazard 
 Aşağıdaki diyagram, NexusRV16'nın iç veri yollarını, kontrol mantığını ve bellek etkileşimini göstermektedir.
 
 ```mermaid
-graph TB
+%%{init: {'theme': 'base', 'themeVariables': { 'edgeLabelBackground': '#ffffff', 'tertiaryColor': '#ffffff', 'primaryColor': '#ffffff'}}}%%
+graph LR
     %% =========================================================
-    %% TEMA VE STİL AYARLARI 
+    %% TEMA: YATAY DÜZEN (Temiz Beyaz Arka Plan)
     %% =========================================================
     linkStyle default interpolate basis stroke:#333333,stroke-width:2px;
 
     %% BEYAZ TUVAL KAPSAYICISI
     subgraph CANVAS [ <br/> ]
-        direction TB
+        direction LR
 
         %% 🎨 RENK PALETİ
         classDef canvas fill:#ffffff,stroke:#333333,stroke-width:2px;
-        classDef block fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000000;
-        classDef memory fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:#000000;
-        classDef external fill:#f5f5f5,stroke:#757575,stroke-width:2px,color:#000000;
-        
+        classDef block fill:#f0f8ff,stroke:#1e88e5,stroke-width:2px,color:#000000,rx:5,ry:5;
+        classDef memory fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:#000000,rx:0,ry:0;
+        classDef external fill:#f5f5f5,stroke:#757575,stroke-width:2px,color:#000000,rx:5,ry:5;
+
         %% =====================================================
-        %% 1. EN ÜST KATMAN: GİRİŞ
+        %% 1. SOL: TEST ORTAMI
         %% =====================================================
         TB["🛠️ TESTBENCH"]:::external
 
         %% =====================================================
-        %% 2. ORTA KATMAN: CPU CORE
+        %% 2. ORTA: PROCESOR ÇEKİRDEĞİ
         %% =====================================================
         subgraph CPU_FRAME [⚡ NexusRV16 CPU CORE]
             direction TB
             
             CTRL["🎮 Control Unit"]:::block
             
-            subgraph DATA_PATH [ ]
+            %% Datapath'i yatayda hizala
+            subgraph DP_LAYER [ ]
                 direction LR
-                ALU["🧮 ALU"]:::block
                 REGS["®️ Register File"]:::block
+                ALU["🧮 ALU"]:::block
             end
             
-            %% Hiyerarşik Bağlar
-            CTRL --> DATA_PATH
+            %% Hiyerarşi: Kontrol üstte, Datapath altta
+            CTRL --> DP_LAYER
         end
 
         %% =====================================================
-        %% 3. ALT KATMAN: BELLEK
+        %% 3. SAĞ: BELLEK (Yan hizada)
         %% =====================================================
         RAM[("💾 MAIN MEMORY<br/>(64KB)")]:::memory
 
         %% =====================================================
-        %% BAĞLANTILAR (Yukarıdan Aşağıya Akış)
+        %% BAĞLANTILAR
         %% =====================================================
         
         %% Testbench -> Control
-        TB == "Instruction Code" ==> CTRL
+        TB == "Instruction" ==> CTRL
 
-        %% Control -> Data Path
+        %% Control Sinyalleri (Temiz Dağılım)
         CTRL -- "Control Sigs" --> REGS
-        CTRL -- "ALU Opcode" --> ALU
-
-        %% ALU <-> Regs Döngüsü
+        CTRL -- "Opcode" --> ALU
+        
+        %% ALU işlem döngüsü
         REGS -- "Operands" --> ALU
         ALU -- "Result" --> REGS
 
-        %% CPU <-> RAM (Daha temiz hatlar)
-        REGS <== "Store Data" ==> RAM
-        RAM <== "Load Data" ==> REGS
+        %% RAM Bağlantısı (Kesişmeyi Önleyen Rota)
+        REGS ==>|Store| RAM
+        RAM ==>|Load| REGS
 
+        %% Hizalama: RAM'i DP_LAYER ile hizala
+        DP_LAYER ~~~ RAM
     end
     
     %% STİL
     style CANVAS fill:#ffffff,stroke:#9e9e9e,stroke-width:4px
     style CPU_FRAME fill:#ffffff,stroke:#1565c0,stroke-width:3px,color:#000000
-    style DATA_PATH fill:none,stroke:none
+    style DP_LAYER fill:none,stroke:none
 
 ```
 
