@@ -13,71 +13,58 @@ Bu proje, modern bilgisayar mimarisi prensiplerini (Register Forwarding, Hazard 
 Aşağıdaki diyagram, NexusRV16'nın iç veri yollarını, kontrol mantığını ve bellek etkileşimini göstermektedir.
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#ffffff', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#f4f4f4', 'fontFamily': 'arial', 'fontSize': '16px'}}}%%
 graph LR
-    %% 🎨 RENK PALETİ VE STİLLER (Vibrant & Professional)
-    classDef cpuContainer fill:#e3f2fd,stroke:#1565c0,stroke-width:3px,color:#0d47a1,rx:10,ry:10;
-    classDef memory fill:#fff8e1,stroke:#ff8f00,stroke-width:3px,color:#bf360c,rx:5,ry:5;
-    classDef control fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#b71c1c,rx:5,ry:5;
-    classDef alu fill:#e0f2f1,stroke:#00695c,stroke-width:2px,color:#004d40,rx:5,ry:5;
-    classDef regs fill:#f1f8e9,stroke:#558b2f,stroke-width:2px,color:#33691e,rx:5,ry:5;
-    classDef datapath fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#4a148c,rx:5,ry:5;
-    classDef testbench fill:#37474f,stroke:#263238,stroke-width:2px,color:#ffffff,rx:10,ry:10;
-
-    %% ---------------------------------------------------------
-    %% ANA SİSTEM
-    %% ---------------------------------------------------------
+    %% Çizgi Stilleri: Orthogonal (Dik Açılı) çizgiler daha düzenli durur
+    linkStyle default interpolate basis
     
-    %% TESTBENCH (SOLDA)
-    TB("�️ TESTBENCH<br/>(tb_NexusRV16)"):::testbench
+    %% 🎨 STİL TANIMLARI (Klasik Doküman Tarzı - Mavi/Gri/Beyaz)
+    classDef container fill:#e8f4f9,stroke:#4a90e2,stroke-width:3px,rx:5,ry:5,color:#333333;
+    classDef internal fill:#ffffff,stroke:#4a90e2,stroke-width:2px,rx:3,ry:3,color:#333333;
+    classDef external fill:#d4e6f1,stroke:#2c3e50,stroke-width:2px,rx:5,ry:5,color:#333333;
+    classDef memory   fill:#fcf3cf,stroke:#f1c40f,stroke-width:2px,rx:0,ry:0,color:#333333;
 
-    subgraph SYSTEM_BOARD [ ]
-        direction LR
+    %% ---------------------------------------------------------
+    %% SOL: GİRİŞ (TESTBENCH)
+    %% ---------------------------------------------------------
+    TB[Testbench / Girdi]:::external
+
+    %% ---------------------------------------------------------
+    %% ORTA: CPU KUTUSU (Klasik Yapı)
+    %% ---------------------------------------------------------
+    subgraph CPU_BOX [NexusRV16 CENTRAL PROCESSING UNIT]
+        direction TB
         
-        %% CPU İÇ YAPISI
-        subgraph CPU [⚡ NexusRV16 PROCESSOR]
-            direction TB
-            
-            %% Üst Katman: Kontrol ve Hesaplama
-            subgraph EXEC_LEVEL [ ]
-                direction LR
-                CTRL["🎮 CONTROL UNIT<br/>(nexus_control)"]:::control
-                ALU["🧮 ALU<br/>(nexus_alu)"]:::alu
-            end
-            
-            %% Alt Katman: Depolama ve Veri Yolu
-            subgraph DATA_LEVEL [ ]
-                direction LR
-                REGS["®️ REGISTER FILE<br/>(nexus_regfile)"]:::regs
-                DP["twisted_rightwards_arrows: DATAPATH<br/>(nexus_datapath)"]:::datapath
-            end
-
-            %% CPU İçi Bağlantılar
-            CTRL ==>|"Control Signals"| DP
-            REGS <==>|"Operands & Results"| DP
-            ALU <==>|"Calculation"| DP
-            
-            %% Hiyerarşik Hizalama için görünmez bağ
-            EXEC_LEVEL ~~~ DATA_LEVEL
+        %% En Üstte Kontrol Birimi
+        CTRL(Control Unit):::internal
+        
+        %% Ortada İşlem Birimleri
+        subgraph PATH [ ]
+            direction LR
+            ALU(Arithmetic Logic Unit):::internal
+            REGS(Register File):::internal
         end
-        class CPU cpuContainer
+        style PATH fill:none,stroke:none
 
-        %% BELLEK (SAĞDA)
-        RAM[("💾 MAIN MEMORY<br/>(nexus_ram)<br/>64KB")]:::memory
-        
-        %% Sistem Bağlantıları
-        CPU <==>|"addr / data / we"| RAM
+        %% Bağlantılar (CPU İçi)
+        CTRL -- Control Signals --> ALU
+        CTRL -- RegWrite/Mux --> REGS
+        REGS <-- Operands/Result --> ALU
     end
-    
-    %% Testbench Bağlantısı
-    TB =="Clock, Reset, Code"==> CPU
+    class CPU_BOX container
 
     %% ---------------------------------------------------------
-    %% Stil Atamaları (Kenarlıklar görünmez olsun diye subgraph trick)
+    %% SAĞ: BELLEK VE ÇIKIŞ
     %% ---------------------------------------------------------
-    style SYSTEM_BOARD fill:none,stroke:none;
-    style EXEC_LEVEL fill:none,stroke:none;
-    style DATA_LEVEL fill:none,stroke:none;
+    RAM[(Memory Unit)]:::memory
+    OUT[Doğrulama / Çıktı]:::external
+
+    %% ---------------------------------------------------------
+    %% ANA BAĞLANTILAR
+    %% ---------------------------------------------------------
+    TB == Program Code ==> CPU_BOX
+    CPU_BOX <== Data & Addr ==> RAM
+    CPU_BOX -.-> OUT
+
 ```
 
 ---
