@@ -14,56 +14,66 @@ Aşağıdaki diyagram, NexusRV16'nın iç veri yollarını, kontrol mantığın�
 
 ```mermaid
 graph LR
-    %% Çizgi Stilleri: Orthogonal (Dik Açılı) çizgiler daha düzenli durur
-    linkStyle default interpolate basis
-    
-    %% 🎨 STİL TANIMLARI (Klasik Doküman Tarzı - Mavi/Gri/Beyaz)
-    classDef container fill:#e8f4f9,stroke:#4a90e2,stroke-width:3px,rx:5,ry:5,color:#333333;
-    classDef internal fill:#ffffff,stroke:#4a90e2,stroke-width:2px,rx:3,ry:3,color:#333333;
-    classDef external fill:#d4e6f1,stroke:#2c3e50,stroke-width:2px,rx:5,ry:5,color:#333333;
-    classDef memory   fill:#fcf3cf,stroke:#f1c40f,stroke-width:2px,rx:0,ry:0,color:#333333;
+    %% =========================================================
+    %% BEYAZ TUVAL AYARI (Arka plan sorununu çözer)
+    %% =========================================================
+    subgraph CANVAS [ ]
+        direction LR
 
-    %% ---------------------------------------------------------
-    %% SOL: GİRİŞ (TESTBENCH)
-    %% ---------------------------------------------------------
-    TB[Testbench / Girdi]:::external
+        %% 🎨 RENK PALETİ (Profesyonel Mavi/Gri Tonlar)
+        classDef canvas fill:#ffffff,stroke:#333333,stroke-width:2px,color:#000000;
+        classDef block fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000000,rx:5,ry:5;
+        classDef memory fill:#fff8e1,stroke:#ff8f00,stroke-width:2px,color:#000000,rx:0,ry:0;
+        classDef external fill:#f5f5f5,stroke:#616161,stroke-width:2px,color:#000000,rx:5,ry:5;
+        
+        %% =====================================================
+        %% BİLEŞENLER
+        %% =====================================================
+        
+        %% 1. GİRİŞ BİRİMİ
+        TB["🛠️ Testbench / Girdi"]:::external
 
-    %% ---------------------------------------------------------
-    %% ORTA: CPU KUTUSU (Klasik Yapı)
-    %% ---------------------------------------------------------
-    subgraph CPU_BOX [NexusRV16 CENTRAL PROCESSING UNIT]
-        direction TB
-        
-        %% En Üstte Kontrol Birimi
-        CTRL(Control Unit):::internal
-        
-        %% Ortada İşlem Birimleri
-        subgraph PATH [ ]
-            direction LR
-            ALU(Arithmetic Logic Unit):::internal
-            REGS(Register File):::internal
+        %% 2. CPU KUTUSU
+        subgraph CPU_FRAME [⚡ NexusRV16 CPU CORE]
+            direction TB
+            
+            CTRL["🎮 Control Unit"]:::block
+            REGS["®️ Register File"]:::block
+            ALU["🧮 ALU"]:::block
+            
+            %% Hiyerarşik Düzen (Yukarıdan Aşağıya)
+            CTRL
+            REGS
+            ALU
         end
-        style PATH fill:none,stroke:none
 
-        %% Bağlantılar (CPU İçi)
-        CTRL -- Control Signals --> ALU
-        CTRL -- RegWrite/Mux --> REGS
-        REGS <-- Operands/Result --> ALU
+        %% 3. BELLEK BİRİMİ
+        RAM[("💾 Main Memory<br>(64KB)")]:::memory
+
+        %% =====================================================
+        %% BAĞLANTILAR (Hizalamayı bozmadan)
+        %% =====================================================
+        
+        %% Testbench -> CPU (Program Code)
+        TB == "Program Code" ==> CTRL
+
+        %% CPU İçi Sinyal Akışı (Temiz Hatlar)
+        CTRL -- "Control Signals" --> REGS
+        CTRL -- "Opcode Select" --> ALU
+        
+        %% Veri Akışı (Data Path)
+        REGS -- "Operands" --> ALU
+        ALU -- "Result (Writeback)" --> REGS
+
+        %% CPU <-> RAM Etkileşimi
+        REGS <== "Data Write" ==> RAM
+        RAM <== "Data Read" ==> REGS
+
     end
-    class CPU_BOX container
-
-    %% ---------------------------------------------------------
-    %% SAĞ: BELLEK VE ÇIKIŞ
-    %% ---------------------------------------------------------
-    RAM[(Memory Unit)]:::memory
-    OUT[Doğrulama / Çıktı]:::external
-
-    %% ---------------------------------------------------------
-    %% ANA BAĞLANTILAR
-    %% ---------------------------------------------------------
-    TB == Program Code ==> CPU_BOX
-    CPU_BOX <== Data & Addr ==> RAM
-    CPU_BOX -.-> OUT
+    
+    %% TUVAL STİLİ (Beyaz Arka Plan Uygulaması)
+    style CANVAS fill:#ffffff,stroke:#9e9e9e,stroke-width:4px
+    style CPU_FRAME fill:#fdfdfd,stroke:#2196f3,stroke-width:2px,color:#000000
 
 ```
 
