@@ -10,54 +10,7 @@ Bu proje, modern bilgisayar mimarisi prensiplerini (Register Forwarding, Hazard 
 
 ## 🎨 High-Level Architecture (Renkli Blok Şeması)
 
-Aşağıdaki diyagram, NexusRV16'nın iç veri yollarını, kontrol mantığını ve bellek etkileşimini göstermektedir.
-
-```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#ffffff', 'edgeLabelBackground': '#ffffff', 'tertiaryColor': '#ffffff'}}}%%
-graph LR
-    linkStyle default interpolate step stroke:#333333,stroke-width:2px;
-
-    subgraph CANVAS [ <br/> ]
-        direction LR
-
-        classDef canvas fill:#ffffff,stroke:#333333,stroke-width:2px;
-        classDef block fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000000,rx:0,ry:0;
-        classDef memory fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:#000000,rx:0,ry:0;
-        classDef external fill:#f5f5f5,stroke:#757575,stroke-width:2px,color:#000000,rx:0,ry:0;
-
-        %% 1. SOL: TEST & CONTROL
-        TB["🛠️ TESTBENCH"]:::external
-        CTRL["🎮 CONTROL UNIT"]:::block
-
-        %% 2. ORTA: DATAPATH (Dikey Hizalı)
-        subgraph DP [ ]
-            direction TB
-            ALU["🧮 ALU"]:::block
-            REGS["®️ REGISTER FILE"]:::block
-        end
-
-        %% 3. SAĞ: MEMORY
-        RAM[("💾 MEMORY (64KB)")]:::memory
-
-        %% BAĞLANTILAR
-        TB ==> CTRL
-        CTRL ==>|Signals| REGS
-        CTRL ==>|Opcode| ALU
-
-        %% ALU <-> REGS (Dikey Döngü)
-        REGS ==>|Operands| ALU
-        ALU ==>|Result| REGS
-
-        %% REGS <-> RAM
-        REGS ==>|Store| RAM
-        RAM ==>|Load| REGS
-
-    end
-    
-    style CANVAS fill:#ffffff,stroke:#9e9e9e,stroke-width:4px
-    style DP fill:none,stroke:none
-
-```
+![NexusRV16 Architecture Diagram](nexus_architecture_diagram.png)
 
 ---
 
